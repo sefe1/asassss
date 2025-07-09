@@ -42,7 +42,8 @@ if ($_POST) {
                         'name' => $name,
                         'user' => $user,
                         'pass' => $pass
-                        
+                    ];
+                    
                     // Update database configuration file
                     $db_config = file_get_contents('../config/database.php');
                     $db_config = str_replace('your_db_username', $config['user'], $db_config);
