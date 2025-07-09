@@ -4,9 +4,10 @@
  * StarRent.vip - Starlink Router Rental Platform
  */
 
-// Suppress ImageMagick version warnings
-error_reporting(E_ALL & ~E_WARNING);
+// Suppress ImageMagick version warnings and other common warnings
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 // Start session
 if (session_status() === PHP_SESSION_NONE) {

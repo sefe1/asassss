@@ -16,10 +16,6 @@ class Database {
     
     private function __construct() {
         try {
-            // Suppress warnings for ImageMagick
-            $originalErrorReporting = error_reporting();
-            error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
-            
             $this->connection = new PDO(
                 "mysql:host={$this->host};dbname={$this->database};charset=utf8mb4",
                 $this->username,
@@ -32,9 +28,6 @@ class Database {
                     PDO::ATTR_TIMEOUT => 30
                 ]
             );
-            
-            // Restore original error reporting
-            error_reporting($originalErrorReporting);
             
         } catch(PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());

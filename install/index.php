@@ -18,8 +18,6 @@ if (file_exists('../config/installed.lock')) {
 $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
 $errors = [];
 $success = [];
-                } elseif (!filter_var($admin_email, FILTER_VALIDATE_EMAIL)) {
-                    $errors[] = 'Please enter a valid email address';
 
 // Handle form submissions
 if ($_POST) {
@@ -45,21 +43,6 @@ if ($_POST) {
                         'user' => $user,
                         'pass' => $pass
                         
-                        // Check if admin exists, if not create one
-                        $stmt = $pdo->prepare("SELECT COUNT(*) FROM admins WHERE id = 1");
-                        $stmt->execute();
-                        $adminExists = $stmt->fetchColumn() > 0;
-                        
-                        if ($adminExists) {
-                            $stmt = $pdo->prepare("UPDATE admins SET name = 'Admin', email = ?, password = ?, updated_at = NOW() WHERE id = 1");
-                            $stmt->execute([$admin_email, $hashed_password]);
-                        } else {
-                            $stmt = $pdo->prepare("INSERT INTO admins (id, name, email, password, status, created_at, updated_at) VALUES (1, 'Admin', ?, ?, 1, NOW(), NOW())");
-                    $config = $_SESSION['db_config'];
-                    $pdo = new PDO("mysql:host={$config['host']};dbname={$config['name']};charset=utf8mb4", 
-                                   $config['user'], $config['pass']);
-                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                    
                     // Update database configuration file
                     $db_config = file_get_contents('../config/database.php');
                     $db_config = str_replace('your_db_username', $config['user'], $db_config);
@@ -78,11 +61,15 @@ if ($_POST) {
                     // Update or create admin user
                     // Read SQL file
                     $sqlFile = '../database/starlink_rental.sql';
+                    
+                    if (file_exists($sqlFile)) {
+                        $sql = file_get_contents($sqlFile);
+                        
                         // Import database using transaction
                         $pdo->beginTransaction();
                         try {
                             // Split SQL into statements
-                            $statements = $this->splitSqlStatements($sql);
+                            $statements = splitSqlStatements($sql);
                             
                             foreach ($statements as $statement) {
                                 $statement = trim($statement);
@@ -99,16 +86,7 @@ if ($_POST) {
                             $errors[] = 'Database import failed: ' . $e->getMessage();
                         }
                     } else {
-                        $sql = file_get_contents($sqlFile);
-                                // Import database using improved method
-                                $this->importDatabase($pdo, $sql);
-                            }
-                            
-                            $success[] = 'Database imported successfully!';
-                            $step = 4;
-                        } else {
-                            $errors[] = 'Could not read database file';
-                        }
+                        $errors[] = 'Could not read database file';
                     }
                 } catch (Exception $e) {
                     $errors[] = 'Database import failed: ' . $e->getMessage();
@@ -127,6 +105,8 @@ if ($_POST) {
             
             if (empty($site_url) || empty($admin_email) || empty($admin_password)) {
                 $errors[] = 'Site URL, admin email, and password are required';
+            } elseif (!filter_var($admin_email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Please enter a valid email address';
             } elseif (strlen($admin_password) < 8) {
                 $errors[] = 'Admin password must be at least 8 characters long';
             } else {

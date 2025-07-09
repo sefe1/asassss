@@ -4,6 +4,9 @@
  * StarRent.vip - Starlink Router Rental Platform
  */
 
+// Suppress ImageMagick warnings
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
 class Database {
     private static $instance = null;
     private $connection;

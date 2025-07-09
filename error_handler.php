@@ -17,22 +17,12 @@ if (!is_dir(__DIR__ . '/logs')) {
 
 // Custom error handler
 function customErrorHandler($errno, $errstr, $errfile, $errline) {
-    // Ignore ImageMagick version warnings
-    if (strpos($errstr, 'Imagick was compiled against ImageMagick') !== false) {
+    // Ignore ImageMagick version warnings and related issues
+    if (strpos($errstr, 'Imagick was compiled against ImageMagick') !== false ||
+        strpos($errstr, 'ImageMagick version') !== false ||
+        strpos($errstr, 'Version warning') !== false ||
+        strpos($errstr, 'Imagick will run but may behave surprisingly') !== false) {
         return true;
-    }
-    
-    // Ignore other common warnings
-    $ignorePatterns = [
-        'Version warning',
-        'ImageMagick version',
-        'Imagick will run but may behave surprisingly'
-    ];
-    
-    foreach ($ignorePatterns as $pattern) {
-        if (strpos($errstr, $pattern) !== false) {
-            return true;
-        }
     }
     
     // Log other errors
