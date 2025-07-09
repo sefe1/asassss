@@ -24,9 +24,9 @@ if ($_POST) {
     switch ($step) {
         case 2:
             // Database Test
-            $host = $_POST['db_host'] ?? 'localhost';
-            $name = $_POST['db_name'] ?? '';
-            $user = $_POST['db_user'] ?? '';
+            $host = sanitize_input($_POST['db_host'] ?? 'localhost');
+            $name = sanitize_input($_POST['db_name'] ?? '');
+            $user = sanitize_input($_POST['db_user'] ?? '');
             $pass = $_POST['db_pass'] ?? '';
             
             if (empty($name) || empty($user)) {
@@ -46,17 +46,17 @@ if ($_POST) {
                     
                     // Update database configuration file
                     $db_config = file_get_contents('../config/database.php');
-                    $db_config = str_replace('your_db_username', $config['user'], $db_config);
-                    $db_config = str_replace('your_db_password', $config['pass'], $db_config);
-                    $db_config = str_replace('your_db_name', $config['name'], $db_config);
-                    $db_config = str_replace('localhost', $config['host'], $db_config);
+                    $db_config = str_replace('your_db_username', $config['user'] ?? '', $db_config);
+                    $db_config = str_replace('your_db_password', $config['pass'] ?? '', $db_config);
+                    $db_config = str_replace('your_db_name', $config['name'] ?? '', $db_config);
+                    $db_config = str_replace('localhost', $config['host'] ?? 'localhost', $db_config);
                     file_put_contents('../config/database.php', $db_config);
                     
                     // Update main configuration
                     $main_config = file_get_contents('../config/config.php');
-                    $main_config = str_replace('https://star-rent.vip', rtrim($site_url, '/'), $main_config);
-                    $main_config = str_replace('your_plisio_api_key', $plisio_api, $main_config);
-                    $main_config = str_replace('your_plisio_secret_key', $plisio_secret, $main_config);
+                    $main_config = str_replace('https://star-rent.vip', rtrim($site_url ?? '', '/'), $main_config);
+                    $main_config = str_replace('your_plisio_api_key', $plisio_api ?? '', $main_config);
+                    $main_config = str_replace('your_plisio_secret_key', $plisio_secret ?? '', $main_config);
                     file_put_contents('../config/config.php', $main_config);
                     
                     // Update or create admin user
@@ -97,12 +97,12 @@ if ($_POST) {
             
         case 4:
             // Site Configuration
-            $site_name = $_POST['site_name'] ?? 'StarRent.vip';
-            $site_url = $_POST['site_url'] ?? '';
-            $admin_email = $_POST['admin_email'] ?? '';
+            $site_name = sanitize_input($_POST['site_name'] ?? 'StarRent.vip');
+            $site_url = sanitize_input($_POST['site_url'] ?? '');
+            $admin_email = sanitize_input($_POST['admin_email'] ?? '');
             $admin_password = $_POST['admin_password'] ?? '';
-            $plisio_api = $_POST['plisio_api'] ?? '';
-            $plisio_secret = $_POST['plisio_secret'] ?? '';
+            $plisio_api = sanitize_input($_POST['plisio_api'] ?? '');
+            $plisio_secret = sanitize_input($_POST['plisio_secret'] ?? '');
             
             if (empty($site_url) || empty($admin_email) || empty($admin_password)) {
                 $errors[] = 'Site URL, admin email, and password are required';
@@ -115,17 +115,17 @@ if ($_POST) {
                     // Update database configuration file
                     $config = $_SESSION['db_config'];
                     $db_config = file_get_contents('../config/database.php');
-                    $db_config = str_replace('your_db_username', $config['user'], $db_config);
-                    $db_config = str_replace('your_db_password', $config['pass'], $db_config);
-                    $db_config = str_replace('your_db_name', $config['name'], $db_config);
-                    $db_config = str_replace('localhost', $config['host'], $db_config);
+                    $db_config = str_replace('your_db_username', $config['user'] ?? '', $db_config);
+                    $db_config = str_replace('your_db_password', $config['pass'] ?? '', $db_config);
+                    $db_config = str_replace('your_db_name', $config['name'] ?? '', $db_config);
+                    $db_config = str_replace('localhost', $config['host'] ?? 'localhost', $db_config);
                     file_put_contents('../config/database.php', $db_config);
                     
                     // Update main configuration
                     $main_config = file_get_contents('../config/config.php');
-                    $main_config = str_replace('https://star-rent.vip', rtrim($site_url, '/'), $main_config);
-                    $main_config = str_replace('your_plisio_api_key', $plisio_api, $main_config);
-                    $main_config = str_replace('your_plisio_secret_key', $plisio_secret, $main_config);
+                    $main_config = str_replace('https://star-rent.vip', rtrim($site_url ?? '', '/'), $main_config);
+                    $main_config = str_replace('your_plisio_api_key', $plisio_api ?? '', $main_config);
+                    $main_config = str_replace('your_plisio_secret_key', $plisio_secret ?? '', $main_config);
                     file_put_contents('../config/config.php', $main_config);
                     
                     // Update admin user in database
@@ -193,7 +193,7 @@ if ($_POST) {
             chmod('../config', 0755);
             
             // Create robots.txt
-            $robots_content = "User-agent: *\nAllow: /\nSitemap: " . ($_SESSION['install_config']['site_url'] ?? '') . "/sitemap.xml";
+            $robots_content = "User-agent: *\nAllow: /\nSitemap: " . rtrim($_SESSION['install_config']['site_url'] ?? '', '/') . "/sitemap.xml";
             file_put_contents('../robots.txt', $robots_content);
                 
                 // Create sample router images (placeholder)
@@ -263,6 +263,14 @@ function splitSqlStatements($sql) {
     }
     
     return $statements;
+}
+
+// Helper function to sanitize input and prevent null values
+function sanitize_input($input) {
+    if ($input === null) {
+        return '';
+    }
+    return trim(htmlspecialchars($input, ENT_QUOTES, 'UTF-8'));
 }
 
 // System requirements check
